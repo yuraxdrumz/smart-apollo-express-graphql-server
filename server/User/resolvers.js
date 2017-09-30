@@ -1,14 +1,30 @@
+
 const UserResolver = {
-  User:{
-    first_name(){
-      return Math.random() < 0.5 ? 'Take it easy' : 'Salvation lies within';
+  Query: {
+    User(obj, args, context, info) {
+     return {first_name:"lala"}
     },
-    last_name(){
-      return 'Bla'
+  },
+  User:{
+    first_name(user){
+      return user.first_name
+    },
+    last_name(user){
+      return user.last_name
+    },
+    houses(obj, args){
+      console.log(obj, args)
+      return []
+    },
+    cats(obj, args){
+      console.log(obj, args)
+      return []
     }
   },
-  createUser({input}){
-    return input
+  Mutation:{
+    createUser(root, {input}, context){
+      return input
+    }
   }
 };
 export { UserResolver }

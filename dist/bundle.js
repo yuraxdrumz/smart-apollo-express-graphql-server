@@ -89,25 +89,30 @@ var _scheme = __webpack_require__(3);
 
 var _scheme2 = _interopRequireDefault(_scheme);
 
-var _express = __webpack_require__(6);
+var _express = __webpack_require__(18);
 
 var _express2 = _interopRequireDefault(_express);
 
-var _bodyParser = __webpack_require__(7);
+var _bodyParser = __webpack_require__(19);
 
 var _bodyParser2 = _interopRequireDefault(_bodyParser);
 
-var _apolloServerExpress = __webpack_require__(8);
+var _graphqlTools = __webpack_require__(17);
+
+var _apolloServerExpress = __webpack_require__(20);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var PORT = 3000;
 var app = (0, _express2.default)();
 
+var executableSchema = (0, _graphqlTools.makeExecutableSchema)({
+  typeDefs: _scheme2.default,
+  resolvers: _scheme.allResolvers
+});
 // bodyParser is needed just for POST.
-app.use('/graphql', _bodyParser2.default.json(), (0, _apolloServerExpress.graphqlExpress)({ schema: _scheme2.default, rootValue: _scheme.allResolvers }));
+app.use('/graphql', _bodyParser2.default.json(), (0, _apolloServerExpress.graphqlExpress)({ schema: executableSchema, rootValue: _scheme.allResolvers }));
 app.get('/graphiql', (0, _apolloServerExpress.graphiqlExpress)({ endpointURL: '/graphql' })); // if you want GraphiQL enabled
-
 app.listen(PORT, function () {
   return console.log('Apollo-express server listening on port ' + PORT);
 });
@@ -139,23 +144,32 @@ var mutationQuery = 'type Mutation{';
 _fs2.default.readdirSync('./server').filter(function (item) {
   return _fs2.default.statSync('./server/' + item).isDirectory();
 }).map(function (dir) {
-  rootQuery = rootQuery + dir + (':' + dir + '\n');
   try {
-    var mutations = __webpack_require__(16)("./" + dir + '/mutations.js');
+    var customQueryType = __webpack_require__(6)("./" + dir + '/customQueryType.js');
+    var customQueryTypes = Object.keys(customQueryType);
+    customQueryTypes.forEach(function (customKey) {
+      rootQuery = rootQuery + customQueryType[customKey];
+    });
+  } catch (e) {
+    rootQuery = rootQuery + dir + (':' + dir + '\n');
+  }
+
+  try {
+    var mutations = __webpack_require__(8)("./" + dir + '/mutations.js');
     var mutationTypes = Object.keys(mutations);
     mutationTypes.forEach(function (mutKey) {
       mutationQuery = mutationQuery + '\n' + mutations[mutKey];
     });
   } catch (e) {}
   try {
-    var types = __webpack_require__(9)("./" + dir + '/types.js');
+    var types = __webpack_require__(10)("./" + dir + '/types.js');
     var typesKeys = Object.keys(types);
     typesKeys.forEach(function (typeKey) {
       allTypes = allTypes + '\n' + types[typeKey];
     });
   } catch (e) {}
   try {
-    var resolvers = __webpack_require__(11)("./" + dir + '/resolvers.js');
+    var resolvers = __webpack_require__(14)("./" + dir + '/resolvers.js');
     var resolverKeys = Object.keys(resolvers);
     resolverKeys.forEach(function (resolverKey) {
       Object.assign(allResolvers, resolvers[resolverKey]);
@@ -164,10 +178,11 @@ _fs2.default.readdirSync('./server').filter(function (item) {
 });
 rootQuery = rootQuery + '}';
 mutationQuery = mutationQuery + '}';
-// Construct a schema, using GraphQL schema language
-var schema = (0, _graphql.buildSchema)('\n  ' + rootQuery + '\n  ' + allTypes + '\n  ' + mutationQuery + '\n');
 
-exports.default = schema;
+// Construct a schema, using GraphQL schema language
+var schema = '\n  ' + rootQuery + '\n  ' + allTypes + '\n  ' + mutationQuery + '\n';
+
+exports.default = [schema];
 exports.allResolvers = allResolvers;
 
 /***/ }),
@@ -184,69 +199,85 @@ module.exports = require("fs");
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = require("express");
+var map = {
+	"./User/customQueryType.js": 7
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number or string
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 6;
 
 /***/ }),
 /* 7 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = require("body-parser");
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var OverWriteRootQueryType = "\n  User(id: Int!): User\n";
+
+exports.OverWriteRootQueryType = OverWriteRootQueryType;
 
 /***/ }),
 /* 8 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = require("apollo-server-express");
+var map = {
+	"./User/mutations.js": 9
+};
+function webpackContext(req) {
+	return __webpack_require__(webpackContextResolve(req));
+};
+function webpackContextResolve(req) {
+	var id = map[req];
+	if(!(id + 1)) // check for number or string
+		throw new Error("Cannot find module '" + req + "'.");
+	return id;
+};
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = 8;
 
 /***/ }),
 /* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
-var map = {
-	"./Cat/types.js": 13,
-	"./House/types.js": 15,
-	"./User/types.js": 10
-};
-function webpackContext(req) {
-	return __webpack_require__(webpackContextResolve(req));
-};
-function webpackContextResolve(req) {
-	var id = map[req];
-	if(!(id + 1)) // check for number or string
-		throw new Error("Cannot find module '" + req + "'.");
-	return id;
-};
-webpackContext.keys = function webpackContextKeys() {
-	return Object.keys(map);
-};
-webpackContext.resolve = webpackContextResolve;
-module.exports = webpackContext;
-webpackContext.id = 9;
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var UserMutations = "\n  createUser(input: newUser): User\n";
+exports.UserMutations = UserMutations;
 
 /***/ }),
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var User = "\n  type User {\n    first_name: String!\n    last_name: String!\n  }\n";
-var UserInput = "\n  input newUser {\n    first_name: String!\n    last_name: String!\n  }\n";
-exports.User = User;
-exports.UserInput = UserInput;
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
 var map = {
-	"./Cat/resolvers.js": 14,
-	"./User/resolvers.js": 12
+	"./Cat/types.js": 11,
+	"./House/types.js": 12,
+	"./User/types.js": 13
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -262,10 +293,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 11;
+webpackContext.id = 10;
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -274,60 +305,11 @@ webpackContext.id = 11;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var UserResolver = {
-  User: {
-    first_name: function first_name() {
-      return Math.random() < 0.5 ? 'Take it easy' : 'Salvation lies within';
-    },
-    last_name: function last_name() {
-      return 'Bla';
-    }
-  },
-  createUser: function createUser(_ref) {
-    var input = _ref.input;
-
-    return input;
-  }
-};
-exports.UserResolver = UserResolver;
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var Cat = "\n  type Cat{\n    color: String!\n    name: String!\n  }\n";
+var Cat = "\n  type Cat {\n    color: String!\n    name: String!\n  }\n";
 exports.Cat = Cat;
 
 /***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-var CatResolver = {
-  Cat: {
-    color: function color() {
-      return 'Black';
-    },
-    name: function name() {
-      return 'Mitzie';
-    }
-  }
-};
-exports.CatResolver = CatResolver;
-
-/***/ }),
-/* 15 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -340,11 +322,28 @@ var House = "\n  type House{\n    color:String!\n    number: Int!\n  }\n";
 exports.House = House;
 
 /***/ }),
-/* 16 */
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var User = "\n  type User {\n    first_name: String!\n    last_name: String!\n    houses:[House!]\n    cats:[Cat!]\n  }\n";
+var UserInput = "\n  input newUser {\n    first_name: String!\n    last_name: String!\n  }\n";
+
+exports.User = User;
+exports.UserInput = UserInput;
+
+/***/ }),
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var map = {
-	"./User/mutations.js": 17
+	"./Cat/resolvers.js": 15,
+	"./User/resolvers.js": 16
 };
 function webpackContext(req) {
 	return __webpack_require__(webpackContextResolve(req));
@@ -360,10 +359,10 @@ webpackContext.keys = function webpackContextKeys() {
 };
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
-webpackContext.id = 16;
+webpackContext.id = 14;
 
 /***/ }),
-/* 17 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -372,8 +371,85 @@ webpackContext.id = 16;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var UserMutations = "\n  createUser(input: newUser): User\n";
-exports.UserMutations = UserMutations;
+var CatResolver = {
+  Cat: {
+    color: function color() {
+      console.log(arguments);
+      return 'Black';
+    },
+    name: function name() {
+      return 'Mitzie';
+    }
+  }
+};
+exports.CatResolver = CatResolver;
+
+/***/ }),
+/* 16 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var UserResolver = {
+  Query: {
+    User: function User(obj, args, context, info) {
+      return { first_name: "lala" };
+    }
+  },
+  User: {
+    first_name: function first_name(user) {
+      return user.first_name;
+    },
+    last_name: function last_name(user) {
+      return user.last_name;
+    },
+    houses: function houses(obj, args) {
+      console.log(obj, args);
+      return [];
+    },
+    cats: function cats(obj, args) {
+      console.log(obj, args);
+      return [];
+    }
+  },
+  Mutation: {
+    createUser: function createUser(root, _ref, context) {
+      var input = _ref.input;
+
+      return input;
+    }
+  }
+};
+exports.UserResolver = UserResolver;
+
+/***/ }),
+/* 17 */
+/***/ (function(module, exports) {
+
+module.exports = require("graphql-tools");
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports) {
+
+module.exports = require("express");
+
+/***/ }),
+/* 19 */
+/***/ (function(module, exports) {
+
+module.exports = require("body-parser");
+
+/***/ }),
+/* 20 */
+/***/ (function(module, exports) {
+
+module.exports = require("apollo-server-express");
 
 /***/ })
 /******/ ]);

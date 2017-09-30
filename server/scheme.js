@@ -1,6 +1,5 @@
 import { buildSchema } from 'graphql';
 import fs from 'fs'
-
 let allTypes = ``
 let allResolvers = {}
 let rootQuery = `type Query{`
@@ -9,7 +8,16 @@ fs
 .readdirSync('./server')
 .filter(item=>(fs.statSync(`./server/${item}`)).isDirectory())
 .map(dir=>{
-  rootQuery = rootQuery + dir + `:${dir}\n`
+  try{
+    const customQueryType = require(`./${dir}/customQueryType.js`)
+    let customQueryTypes = Object.keys(customQueryType)
+    customQueryTypes.forEach(customKey=>{
+      rootQuery = rootQuery + customQueryType[customKey]
+    })
+  }catch(e){
+    rootQuery = rootQuery + dir + `:${dir}\n`
+  }
+
   try{
     const mutations = require(`./${dir}/mutations.js`)
     let mutationTypes = Object.keys(mutations)
@@ -34,12 +42,13 @@ fs
 })
 rootQuery = rootQuery + '}'
 mutationQuery = mutationQuery + '}'
+
 // Construct a schema, using GraphQL schema language
-const schema = buildSchema(`
+const schema = `
   ${rootQuery}
   ${allTypes}
   ${mutationQuery}
-`);
+`;
 
-export default schema
+export default [schema]
 export { allResolvers }

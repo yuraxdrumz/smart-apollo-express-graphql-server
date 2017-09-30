@@ -1,5 +1,5 @@
 const Cat = `
-  type Cat{
+  type Cat {
     color: String!
     name: String!
   }
